@@ -37,8 +37,10 @@ To use MycoMonitor, follow these steps:
     ```
 2. Run the web application:
     ```sh
-    python MycoApi.py
     streamlit run MycoWebsite.py
+    ```
+    ```sh
+    python MycoApi.py
     ```
 3. Access the dashboard through your web browser at `http://localhost:8501`.
 
