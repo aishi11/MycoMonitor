@@ -19,23 +19,30 @@ except Exception as e:
 
 # Fungsi untuk preprocessing gambar
 def preprocess_image(image):
-    resized_image = cv2.resize(image, (224, 224))  # Sesuaikan ukuran sesuai dengan model
-    normalized_image = resized_image / 255.0
-    preprocessed_image = np.expand_dims(normalized_image, axis=0)
-    return preprocessed_image
+    try:
+        resized_image = cv2.resize(image, (224, 224))  # Sesuaikan ukuran sesuai dengan model
+        normalized_image = resized_image / 255.0
+        preprocessed_image = np.expand_dims(normalized_image, axis=0)
+        return preprocessed_image
+    except Exception as e:
+        st.error(f"Error during image preprocessing: {e}")
+        return None
 
 # Fungsi untuk melakukan prediksi
 def predict_from_frame(model, image):
-    try:
-        preprocessed_image = preprocess_image(image)
-        st.write("Preprocessed Image Shape:", preprocessed_image.shape)
-        prediction = model.predict(preprocessed_image)
-        st.write("Prediction:", prediction)
-        label = np.argmax(prediction)
-        confidence = np.max(prediction)
-        return label, confidence
-    except Exception as e:
-        st.error(f"Error during prediction: {e}")
+    preprocessed_image = preprocess_image(image)
+    if preprocessed_image is not None:
+        try:
+            st.write("Preprocessed Image Shape:", preprocessed_image.shape)
+            prediction = model.predict(preprocessed_image)
+            st.write("Prediction:", prediction)
+            label = np.argmax(prediction)
+            confidence = np.max(prediction)
+            return label, confidence
+        except Exception as e:
+            st.error(f"Error during prediction: {e}")
+            return None, None
+    else:
         return None, None
 
 # Label tahapan jamur (sesuaikan dengan kelas pada model)
@@ -77,18 +84,23 @@ if uploaded_file is not None:
     else:
         st.error("Failed to predict the mushroom growth stage.")
 
-# Display sensor data
-sensor_data = fetch_sensor_data()
+# Fungsi untuk menampilkan data sensor
+def display_sensor_data():
+    sensor_data = fetch_sensor_data()
+    if sensor_data:
+        st.header("Sensor Data")
+        st.write(f"Temperature: {sensor_data.get('temperature')} °C")
+        st.write(f"Humidity: {sensor_data.get('humidity')} %")
+        st.write(f"Motion: {'Detected' if sensor_data.get('motion') == 1 else 'Not Detected'}")
+    else:
+        st.write("No sensor data available.")
 
-if sensor_data:
-    st.header("Sensor Data")
-    st.write(f"Temperature: {sensor_data.get('temperature')} °C")
-    st.write(f"Humidity: {sensor_data.get('humidity')} %")
-    st.write(f"Motion: {'Detected' if sensor_data.get('motion') == 1 else 'Not Detected'}")
-
-st.text(f"Refreshing data every {refresh_interval} seconds...")
-st.text("Press Ctrl+C to stop the Streamlit app.")
-
-# Add a small delay to reduce CPU usage
-time.sleep(refresh_interval)
-st.experimental_rerun()
+# Refresh data setiap interval waktu tertentu
+if st.button("Start Data Refresh"):
+    while True:
+        display_sensor_data()
+        st.text(f"Refreshing data every {refresh_interval} seconds...")
+        time.sleep(refresh_interval)
+        st.experimental_rerun()
+else:
+    display_sensor_data()
