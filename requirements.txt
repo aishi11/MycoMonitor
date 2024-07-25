@@ -9,3 +9,4 @@ Flask==3.0.3
 opencv-python-headless==4.10.0.84
 beautifulsoup4==4.12.3
 pillow==10.3.0
+keras==3.4.1
