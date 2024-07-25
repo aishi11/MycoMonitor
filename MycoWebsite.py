@@ -10,7 +10,7 @@ from keras.models import load_model
 from PIL import Image
 
 # Load the trained model
-model_path = 'C:/Users/dell/Documents/Arduino/MycoMOnitor/mushroom_growth_classifier.h5'
+model_path = 'C://Users//dell//Documents//Arduino//MycoMOnitor//mushroom_growth_classifier.h5'
 model = load_model(model_path)
 
 # Fungsi untuk preprocessing gambar
