@@ -1,13 +1,19 @@
+import subprocess
+import time
 import streamlit as st
 import requests
-import time
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 from keras.models import load_model
 from PIL import Image
+
+# Start Flask server
+flask_process = subprocess.Popen(['python', 'MycoApi.py'])
+
+# Allow Flask some time to start
+time.sleep(5)
 
 # Load the trained model
 model_path = 'mushroom_growth_classifier.h5'
@@ -51,7 +57,7 @@ labels = ['Miselia', 'Primordia', 'Tubuh Jamur', 'Panen']
 # Fungsi untuk fetch data sensor dari Flask server
 def fetch_sensor_data():
     try:
-        url = "http://192.168.100.12:5000/send_sensor_data"  # Ganti dengan URL Flask server Anda
+        url = "http://localhost:5000/send_sensor_data"  # Ganti dengan URL Flask server Anda
         response = requests.get(url)
         data = response.json()
         return data
