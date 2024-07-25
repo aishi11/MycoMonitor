@@ -11,7 +11,11 @@ from PIL import Image
 
 # Load the trained model
 model_path = 'mushroom_growth_classifier.h5'
-model = load_model(model_path)
+try:
+    model = load_model(model_path)
+    st.success("Model loaded successfully!")
+except Exception as e:
+    st.error(f"Error loading model: {e}")
 
 # Fungsi untuk preprocessing gambar
 def preprocess_image(image):
@@ -22,11 +26,17 @@ def preprocess_image(image):
 
 # Fungsi untuk melakukan prediksi
 def predict_from_frame(model, image):
-    preprocessed_image = preprocess_image(image)
-    prediction = model.predict(preprocessed_image)
-    label = np.argmax(prediction)
-    confidence = np.max(prediction)
-    return label, confidence
+    try:
+        preprocessed_image = preprocess_image(image)
+        st.write("Preprocessed Image Shape:", preprocessed_image.shape)
+        prediction = model.predict(preprocessed_image)
+        st.write("Prediction:", prediction)
+        label = np.argmax(prediction)
+        confidence = np.max(prediction)
+        return label, confidence
+    except Exception as e:
+        st.error(f"Error during prediction: {e}")
+        return None, None
 
 # Label tahapan jamur (sesuaikan dengan kelas pada model)
 labels = ['Miselia', 'Primordia', 'Tubuh Jamur', 'Panen']
@@ -59,24 +69,26 @@ if uploaded_file is not None:
 
     # Preprocess and predict
     label_index, confidence = predict_from_frame(model, image_rgb)
-    label = labels[label_index]  # Dapatkan nama label dari indeks
+    
+    if label_index is not None:
+        label = labels[label_index]  # Dapatkan nama label dari indeks
+        # Display the result
+        st.image(image_rgb, caption=f'Tahapan Jamur: {label}, Confidence: {confidence:.2f}', use_column_width=True)
+    else:
+        st.error("Failed to predict the mushroom growth stage.")
 
-    # Display the result
-    st.image(image_rgb, caption=f'Tahapan Jamur: {label}, Confidence: {confidence:.2f}', use_column_width=True)
+# Display sensor data
+sensor_data = fetch_sensor_data()
 
-# Main display loop for sensor data
-while True:
-    sensor_data = fetch_sensor_data()
+if sensor_data:
+    st.header("Sensor Data")
+    st.write(f"Temperature: {sensor_data.get('temperature')} °C")
+    st.write(f"Humidity: {sensor_data.get('humidity')} %")
+    st.write(f"Motion: {'Detected' if sensor_data.get('motion') == 1 else 'Not Detected'}")
 
-    if sensor_data:
-        st.header("Sensor Data")
-        st.write(f"Temperature: {sensor_data.get('temperature')} °C")
-        st.write(f"Humidity: {sensor_data.get('humidity')} %")
-        st.write(f"Motion: {'Detected' if sensor_data.get('motion') == 1 else 'Not Detected'}")
+st.text(f"Refreshing data every {refresh_interval} seconds...")
+st.text("Press Ctrl+C to stop the Streamlit app.")
 
-    st.text(f"Refreshing data every {refresh_interval} seconds...")
-    st.text("Press Ctrl+C to stop the Streamlit app.")
-
-    # Add a small delay to reduce CPU usage
-    time.sleep(refresh_interval)
-    st.experimental_rerun()
+# Add a small delay to reduce CPU usage
+time.sleep(refresh_interval)
+st.experimental_rerun()
