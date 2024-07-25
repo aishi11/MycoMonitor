@@ -22,15 +22,11 @@ def preprocess_image(image):
 
 # Fungsi untuk melakukan prediksi
 def predict_from_frame(model, image):
-    try:
-        preprocessed_image = preprocess_image(image)
-        prediction = model.predict(preprocessed_image)
-        label = np.argmax(prediction)
-        confidence = np.max(prediction)
-        return label, confidence
-    except Exception as e:
-        st.error(f"Error during prediction: {e}")
-        return None, None
+    preprocessed_image = preprocess_image(image)
+    prediction = model.predict(preprocessed_image)
+    label = np.argmax(prediction)
+    confidence = np.max(prediction)
+    return label, confidence
 
 # Label tahapan jamur (sesuaikan dengan kelas pada model)
 labels = ['Miselia', 'Primordia', 'Tubuh Jamur', 'Panen']
@@ -63,26 +59,24 @@ if uploaded_file is not None:
 
     # Preprocess and predict
     label_index, confidence = predict_from_frame(model, image_rgb)
-    
-    if label_index is not None:
-        label = labels[label_index]  # Dapatkan nama label dari indeks
-        # Display the result
-        st.image(image_rgb, caption=f'Tahapan Jamur: {label}, Confidence: {confidence:.2f}', use_column_width=True)
-    else:
-        st.error("Failed to predict the mushroom growth stage.")
+    label = labels[label_index]  # Dapatkan nama label dari indeks
 
-# Display sensor data
-sensor_data = fetch_sensor_data()
+    # Display the result
+    st.image(image_rgb, caption=f'Tahapan Jamur: {label}, Confidence: {confidence:.2f}', use_column_width=True)
 
-if sensor_data:
-    st.header("Sensor Data")
-    st.write(f"Temperature: {sensor_data.get('temperature')} °C")
-    st.write(f"Humidity: {sensor_data.get('humidity')} %")
-    st.write(f"Motion: {'Detected' if sensor_data.get('motion') == 1 else 'Not Detected'}")
+# Main display loop for sensor data
+while True:
+    sensor_data = fetch_sensor_data()
 
-st.text(f"Refreshing data every {refresh_interval} seconds...")
-st.text("Press Ctrl+C to stop the Streamlit app.")
+    if sensor_data:
+        st.header("Sensor Data")
+        st.write(f"Temperature: {sensor_data.get('temperature')} °C")
+        st.write(f"Humidity: {sensor_data.get('humidity')} %")
+        st.write(f"Motion: {'Detected' if sensor_data.get('motion') == 1 else 'Not Detected'}")
 
-# Add a small delay to reduce CPU usage
-time.sleep(refresh_interval)
-st.experimental_rerun()
+    st.text(f"Refreshing data every {refresh_interval} seconds...")
+    st.text("Press Ctrl+C to stop the Streamlit app.")
+
+    # Add a small delay to reduce CPU usage
+    time.sleep(refresh_interval)
+    st.experimental_rerun()
