@@ -57,7 +57,7 @@ labels = ['Miselia', 'Primordia', 'Tubuh Jamur', 'Panen']
 # Fungsi untuk fetch data sensor dari Flask server
 def fetch_sensor_data():
     try:
-        url = "http://localhost:5000/send_sensor_data"  # Ganti dengan URL Flask server Anda
+        url = "http://192.168.100.12:5000/send_sensor_data"  # Ganti dengan URL Flask server Anda
         response = requests.get(url)
         data = response.json()
         return data
