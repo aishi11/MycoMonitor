@@ -1,4 +1,5 @@
 import subprocess
+import flask
 import time
 import streamlit as st
 import requests
@@ -8,6 +9,7 @@ import matplotlib.pyplot as plt
 import os
 from keras.models import load_model
 from PIL import Image
+
 
 # Start Flask server
 flask_process = subprocess.Popen(['python', 'MycoApi.py'])
