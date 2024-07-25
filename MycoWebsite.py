@@ -64,19 +64,18 @@ if uploaded_file is not None:
     # Display the result
     st.image(image_rgb, caption=f'Tahapan Jamur: {label}, Confidence: {confidence:.2f}', use_column_width=True)
 
-# Main display loop for sensor data
-while True:
-    sensor_data = fetch_sensor_data()
+# Display sensor data
+sensor_data = fetch_sensor_data()
 
-    if sensor_data:
-        st.header("Sensor Data")
-        st.write(f"Temperature: {sensor_data.get('temperature')} °C")
-        st.write(f"Humidity: {sensor_data.get('humidity')} %")
-        st.write(f"Motion: {'Detected' if sensor_data.get('motion') == 1 else 'Not Detected'}")
+if sensor_data:
+    st.header("Sensor Data")
+    st.write(f"Temperature: {sensor_data.get('temperature')} °C")
+    st.write(f"Humidity: {sensor_data.get('humidity')} %")
+    st.write(f"Motion: {'Detected' if sensor_data.get('motion') == 1 else 'Not Detected'}")
 
-    st.text(f"Refreshing data every {refresh_interval} seconds...")
-    st.text("Press Ctrl+C to stop the Streamlit app.")
+st.text(f"Refreshing data every {refresh_interval} seconds...")
+st.text("Press Ctrl+C to stop the Streamlit app.")
 
-    # Add a small delay to reduce CPU usage
-    time.sleep(refresh_interval)
-    st.experimental_rerun()
+# Add a small delay to reduce CPU usage
+time.sleep(refresh_interval)
+st.experimental_rerun()
