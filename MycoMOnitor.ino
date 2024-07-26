@@ -8,19 +8,18 @@
 #include <Wire.h>
 #include <DHT.h> // sensor suhu dan kelembaban
 
-#define DHTPIN 4 // Pin data DHT22 terhubung ke pin Arduino 2
+#define DHTPIN 4 // Pin data DHT22 terhubung ke pin Arduino 4
 #define DHTTYPE DHT22 // Tipe sensor DHT22
 
 DHT dht(DHTPIN, DHTTYPE); // Membuat objek DHT
 
 #define PIRPIN 5 // PIR sensor pin di ESP32
-#define LED_TEMP 13
-#define LED_MOTION 12
+#define LED_INDICATOR 13 // Pin LED untuk indikator
 
 int motion = LOW; // declare motion variable globally
 
-const char* ssid = "BIMAYURAISYAH"; // nama wifi
-const char* password = "rinisukemi"; // pass wifi
+const char* ssid = "YOUR SSID"; // nama wifi
+const char* password = "YOUR PASS"; // pass wifi
 
 void setup() {
   // Initialize serial communication at 115200 baud rate
@@ -35,11 +34,9 @@ void setup() {
   // Initialize PIR sensor
   pinMode(PIRPIN, INPUT);
 
-  // Initialize LEDs
-  pinMode(LED_TEMP, OUTPUT);
-  pinMode(LED_MOTION, OUTPUT);
-  digitalWrite(LED_TEMP, LOW); // Matikan lampu suhu secara default
-  digitalWrite(LED_MOTION, LOW); // Matikan lampu gerakan secara default
+  // Initialize LED
+  pinMode(LED_INDICATOR, OUTPUT);
+  digitalWrite(LED_INDICATOR, LOW); // Matikan lampu indikator secara default
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
@@ -82,29 +79,27 @@ void loop() {
   // Send data to Flask server via HTTP POST
   sendDataToServer(temperature, humidity, motion);
 
-  // Kontrol LED berdasarkan suhu
-  if (temperature < 24 || temperature > 27) {
-    digitalWrite(LED_TEMP, HIGH); // Nyalakan lampu suhu
-    Blynk.virtualWrite(V4, 1); // Kirim status lampu suhu ke pin virtual V4
+  // Kontrol LED indikator berdasarkan kondisi
+  if (temperature < 24) {
+    // Suhu rendah
+    indicate(1);
+    Blynk.virtualWrite(V4, "Low Temp");
+  } else if (temperature > 27) {
+    // Suhu tinggi
+    indicate(2);
+    Blynk.virtualWrite(V4, "High Temp");
+  } else if (humidity < 70) {
+    // Kelembapan rendah
+    indicate(3);
+    Blynk.virtualWrite(V4, "Low Humidity");
+  } else if (humidity > 90) {
+    // Kelembapan tinggi
+    indicate(4);
+    Blynk.virtualWrite(V4, "High Humidity");
   } else {
-    digitalWrite(LED_TEMP, LOW); // Matikan lampu suhu
-    Blynk.virtualWrite(V4, 0); // Kirim status lampu suhu ke pin virtual V4
-  }
-
-  // Add a delay filter to reduce false positives
-  if (motion == HIGH) {
-    delay(100); // Tunggu 100 milidetik untuk konfirmasi gerakan
-    if (digitalRead(PIRPIN) == HIGH) {
-      digitalWrite(LED_MOTION, HIGH); // Nyalakan lampu gerakan
-      Blynk.virtualWrite(V5, 1); // Kirim status lampu gerakan ke pin virtual V5
-    } else {
-      motion = LOW;
-      digitalWrite(LED_MOTION, LOW); // Matikan lampu gerakan
-      Blynk.virtualWrite(V5, 0); // Kirim status lampu gerakan ke pin virtual V5
-    }
-  } else {
-    digitalWrite(LED_MOTION, LOW); // Matikan lampu gerakan
-    Blynk.virtualWrite(V5, 0); // Kirim status lampu gerakan ke pin virtual V5
+    // Kondisi normal
+    digitalWrite(LED_INDICATOR, LOW);
+    Blynk.virtualWrite(V4, "Normal");
   }
 
   // Send sensor data to Blynk
@@ -136,4 +131,32 @@ void sendDataToServer(float temperature, float humidity, int motion) {
     client.print(data);
     client.println();
   }
+}
+
+void indicate(int condition) {
+  switch (condition) {
+    case 1:
+      // Suhu rendah
+      blinkLED(500); // LED berkedip 500 ms
+      break;
+    case 2:
+      // Suhu tinggi
+      blinkLED(1000); // LED berkedip 1000 ms
+      break;
+    case 3:
+      // Kelembapan rendah
+      blinkLED(1500); // LED berkedip 1500 ms
+      break;
+    case 4:
+      // Kelembapan tinggi
+      blinkLED(2000); // LED berkedip 2000 ms
+      break;
+  }
+}
+
+void blinkLED(int duration) {
+  digitalWrite(LED_INDICATOR, HIGH); // LED ON
+  delay(duration);
+  digitalWrite(LED_INDICATOR, LOW);  // LED OFF
+  delay(duration);
 }
