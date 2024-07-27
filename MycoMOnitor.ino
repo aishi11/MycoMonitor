@@ -14,12 +14,13 @@
 DHT dht(DHTPIN, DHTTYPE); // Membuat objek DHT
 
 #define PIRPIN 5 // PIR sensor pin di ESP32
-#define LED_INDICATOR 13 // Pin LED untuk indikator
+#define LED_INDICATOR 13 // Pin LED untuk indikator kondisi suhu dan kelembaban
+#define LED_MOTION 12 // Pin LED untuk indikator gerakan
 
 int motion = LOW; // declare motion variable globally
 
-const char* ssid = "YOUR SSID"; // nama wifi
-const char* password = "YOUR PASS"; // pass wifi
+const char* ssid = "BIMAYURAISYAH"; // nama wifi
+const char* password = "rinisukemi"; // pass wifi
 
 void setup() {
   // Initialize serial communication at 115200 baud rate
@@ -34,9 +35,11 @@ void setup() {
   // Initialize PIR sensor
   pinMode(PIRPIN, INPUT);
 
-  // Initialize LED
+  // Initialize LEDs
   pinMode(LED_INDICATOR, OUTPUT);
-  digitalWrite(LED_INDICATOR, LOW); // Matikan lampu indikator secara default
+  pinMode(LED_MOTION, OUTPUT);
+  digitalWrite(LED_INDICATOR, LOW); // Matikan lampu indikator suhu dan kelembaban secara default
+  digitalWrite(LED_MOTION, LOW); // Matikan lampu indikator gerakan secara default
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
@@ -79,7 +82,7 @@ void loop() {
   // Send data to Flask server via HTTP POST
   sendDataToServer(temperature, humidity, motion);
 
-  // Kontrol LED indikator berdasarkan kondisi
+  // Kontrol LED indikator berdasarkan kondisi suhu dan kelembaban
   if (temperature < 24) {
     // Suhu rendah
     indicate(1);
@@ -100,6 +103,13 @@ void loop() {
     // Kondisi normal
     digitalWrite(LED_INDICATOR, LOW);
     Blynk.virtualWrite(V4, "Normal");
+  }
+
+  // Kontrol LED indikator gerakan
+  if (motion == HIGH) {
+    digitalWrite(LED_MOTION, HIGH); // Nyalakan LED gerakan
+  } else {
+    digitalWrite(LED_MOTION, LOW); // Matikan LED gerakan
   }
 
   // Send sensor data to Blynk
